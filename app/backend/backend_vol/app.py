@@ -1,21 +1,28 @@
 import time
+import os
 import random
 from sqlalchemy import create_engine
 
-db_name = 'database'
-db_user = 'username'
-db_pass = 'secret'
-db_host = 'db'
-db_port = '5432'
+db_name = 'postgres'
+db_user = os.environ['POSTGRES_USER']
+db_pass = os.environ['POSTGRES_PASSWORD']
+db_host = os.environ['POSTGRES_HOST']
+db_port = os.environ['POSTGRES_PORT']
 
 # Connecto to the database
-db_string = 'postgres://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
+db_string = 'postgresql://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
 db = create_engine(db_string)
+
+def create_table():
+    db.execute( "CREATE TABLE IF NOT EXISTS numbers (" + \
+                "number BIGINT," + \
+                "timestamp BIGINT" + \
+                ");" )
 
 def add_new_row(n):
     # Insert a new number into the 'numbers' table.
-    db.execute("INSERT INTO numbers (number,timestamp) "+\
-        "VALUES ("+\ 
+    db.execute("INSERT INTO numbers (number, timestamp) " + \
+        "VALUES (" + \
         str(n) + "," + \
         str(int(round(time.time() * 1000))) + ");")
 
@@ -33,9 +40,10 @@ def get_last_row():
 
 if __name__ == '__main__':
     print('Application started')
-    print('Application started')
+    create_table()
+    print('Table Created')
 
     while True:
         add_new_row(random.randint(1,100000))
-        print('The last value insterted is: {}'.format(get_last_row()))
-        time.sleep(5)
+        print('The last value inserted is: {}'.format(get_last_row()))
+        time.sleep(.5)

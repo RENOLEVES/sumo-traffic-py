@@ -4,29 +4,26 @@ services:
     postgres:
         container_name: postgres_container
         image: postgres
-        environment:
-            POSTGRES_USER: ${POSTGRES_USER:-postgres}
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-            PGDATA: /data/postgres
+        env_file:
+            - 'variables.env'
         volumes:
             - ./database/postgres_vol:/data/postgres
         ports:
-            - "5432:5432"
+            - 5432:5432
         networks:
-            - postgres
+            postgres:
+                ipv4_address: 10.5.0.6
         restart: unless-stopped
 
     pgadmin:
         container_name: pgadmin_container
         image: dpage/pgadmin4
-        environment:
-            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-            PGADMIN_CONFIG_SERVER_MODE: 'False'
+        env_file:
+            - 'variables.env'
         volumes:
             - ./database/pgadmin_vol:/var/lib/pgadmin
         ports:
-            - "${PGADMIN_PORT:-5050}:80"
+            - 5050:80
         networks:
             - postgres
         restart: unless-stopped
@@ -37,8 +34,8 @@ services:
             app/sumo
         volumes:
             - ./app/sumo/sumo_vol:/home
-        # ports:
-        #     - "5432:5432"
+        env_file:
+            - 'variables.env'
         networks:
             - postgres
         command: tail -f /dev/null # keeping the container alive
@@ -50,13 +47,18 @@ services:
             app/backend
         volumes:
             - ./app/backend/backend_vol:/home
-        # ports:
-        #     - "5432:5432"
+        env_file:
+            - 'variables.env'
         networks:
             - postgres
         command: tail -f /dev/null # keeping the container alive
         restart: unless-stopped
 
+
 networks:
     postgres:
         driver: bridge
+        ipam:
+         config:
+           - subnet: 10.5.0.0/16
+             gateway: 10.5.0.1
