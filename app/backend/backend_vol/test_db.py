@@ -1,5 +1,5 @@
-import time
 import os
+import time
 import random
 from sqlalchemy import create_engine
 
@@ -9,7 +9,7 @@ db_pass = os.environ['POSTGRES_PASSWORD']
 db_host = os.environ['POSTGRES_HOST']
 db_port = os.environ['POSTGRES_PORT']
 
-# Connecto to the database
+# Connect to the database
 db_string = 'postgresql://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
 db = create_engine(db_string)
 
@@ -33,7 +33,6 @@ def get_last_row():
             "FROM numbers " + \
             "WHERE timestamp >= (SELECT max(timestamp) FROM numbers)" +\
             "LIMIT 1"
-
     result_set = db.execute(query)  
     for (r) in result_set:  
         return r[0]

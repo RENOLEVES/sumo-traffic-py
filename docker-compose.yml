@@ -28,18 +28,22 @@ services:
             - postgres
         restart: unless-stopped
     
-    sumo:
-        container_name: sumo_container
-        build:
-            app/sumo
-        volumes:
-            - ./app/sumo/sumo_vol:/home
-        env_file:
-            - 'variables.env'
-        networks:
-            - postgres
-        command: tail -f /dev/null # keeping the container alive
-        restart: unless-stopped
+    # sumo:
+    #     container_name: sumo_container
+    #     build:
+    #         app/sumo
+    #     volumes:
+    #         - ./app/sumo/sumo_vol:/home
+    #         - sumo_home_vol:/usr/share/sumo
+    #         # - sumo_dep_vol:/
+    #     env_file:
+    #         - 'variables.env'
+    #     expose:
+    #         - 8813
+    #     networks:
+    #         - postgres
+    #     command: tail -f /dev/null # keeping the container alive
+    #     restart: unless-stopped
 
     backend:
         container_name: backend_container
@@ -47,8 +51,12 @@ services:
             app/backend
         volumes:
             - ./app/backend/backend_vol:/home
+            # - sumo_home_vol:/opt/sumo
+            # - sumo_dep_vol:/tmp
         env_file:
             - 'variables.env'
+        expose:
+            - 8813
         networks:
             - postgres
         command: tail -f /dev/null # keeping the container alive
@@ -62,3 +70,7 @@ networks:
          config:
            - subnet: 10.5.0.0/16
              gateway: 10.5.0.1
+
+volumes:
+    sumo_home_vol:
+#     sumo_dep_vol:
