@@ -14,9 +14,11 @@ db_string = 'postgresql://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_p
 db = create_engine(db_string)
 
 def create_table():
-    db.execute( "CREATE TABLE IF NOT EXISTS numbers (" + \
-                "number BIGINT," + \
-                "timestamp BIGINT" + \
+    db.execute( "CREATE TABLE IF NOT EXISTS vehicles (" + \
+                "timestamp INTEGER," + \
+                "type TEXT," + \
+                "latitude FLOAT" + \
+                "longitude FLOAT" + \
                 ");" )
 
 def add_new_row(n):
@@ -29,8 +31,8 @@ def add_new_row(n):
 def get_last_row():
     # Retrieve the last number inserted inside the 'numbers'
     query = "" + \
-            "SELECT number " + \
-            "FROM numbers " + \
+            "SELECT * " + \
+            "FROM vehicles " + \
             "WHERE timestamp >= (SELECT max(timestamp) FROM numbers)" +\
             "LIMIT 1"
     result_set = db.execute(query)  

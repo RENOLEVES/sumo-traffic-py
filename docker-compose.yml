@@ -27,41 +27,35 @@ services:
         networks:
             - postgres
         restart: unless-stopped
-    
-    # sumo:
-    #     container_name: sumo_container
-    #     build:
-    #         app/sumo
-    #     volumes:
-    #         - ./app/sumo/sumo_vol:/home
-    #         - sumo_home_vol:/usr/share/sumo
-    #         # - sumo_dep_vol:/
-    #     env_file:
-    #         - 'variables.env'
-    #     expose:
-    #         - 8813
-    #     networks:
-    #         - postgres
-    #     command: tail -f /dev/null # keeping the container alive
-    #     restart: unless-stopped
 
     backend:
         container_name: backend_container
-        build:
-            app/backend
+        build: app/backend
+        image: backend
         volumes:
             - ./app/backend/backend_vol:/home
-            # - sumo_home_vol:/opt/sumo
-            # - sumo_dep_vol:/tmp
         env_file:
             - 'variables.env'
-        expose:
-            - 8813
         networks:
             - postgres
         command: tail -f /dev/null # keeping the container alive
         restart: unless-stopped
 
+    api:
+        container_name: api_container
+        build: app/api
+        image: api
+        volumes:
+            - './app/api/api_vol:/code'
+        env_file:
+            - 'variables.env'
+        ports:
+            - '5000:5000'
+            - '8000:8000'
+        command: tail -f /dev/null # keeping the container alive
+        networks:
+            - postgres
+        restart: unless-stopped
 
 networks:
     postgres:
