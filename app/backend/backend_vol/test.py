@@ -35,10 +35,10 @@ def add_new_row(vts, vtype, vlon, vlat ):
             str(vlon) + "," + \
             str(vlat) + \
             ");"
-    print(cmd)
+    # print(cmd)
     db.execute(cmd)
 
-create_table()
+# create_table()
 
 #################### SUMO ####################
 
@@ -54,24 +54,25 @@ sumoCmd = [sumo_binary_path, '-c', 'sumo-scenarios/Lachine/lachine.sumocfg']
 print(sumoCmd)
 traci.start(sumoCmd)
 step = 0
-while step < 1000:
-    traci.simulationStep()
+nr_steps_per_run = 10
+while step < 5000:
+    [traci.simulationStep() for el in range(nr_steps_per_run)]
     vehicleIDS = traci.vehicle.getIDList()
     for vehicleID in vehicleIDS:
         x, y = traci.vehicle.getPosition(vehicleID)
         vlon, vlat = traci.simulation.convertGeo(x, y)
         vtype = traci.vehicle.getVehicleClass(vehicleID)
-        print( vehicleID )
-        print( x, y )
-        print( vlon, vlat )
-        print( traci.vehicle.getVehicleClass(vehicleID) )
-        print( "---------------------------------" )
-        add_new_row(step, vtype, vlon, vlat )
+        # print( vehicleID )
+        # print( x, y )
+        # print( vlon, vlat )
+        # print( traci.vehicle.getVehicleClass(vehicleID) )
+        # print( "---------------------------------" )
+        # add_new_row(step, vtype, vlon, vlat )
         # time.sleep(.2)
     print("--> ",step , "  ---   ", len(vehicleIDS))
     # break
-    step += 1
-    time.sleep(2)
+    step += nr_steps_per_run
+    time.sleep(.002)
     
 
 traci.close()

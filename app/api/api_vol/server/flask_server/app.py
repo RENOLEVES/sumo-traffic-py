@@ -58,7 +58,7 @@ def test_message(message):
 @socketio.on('floating info event')
 def test_message(message):
     print(message)
-    last = get_last_row(vts=3)
+    last = get_last_row(vts=message)
     emit('floating info response', last)
 
 @socketio.on('connect')
