@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import logo from './Rotating-Pencils.jpg';
+import logo from '../public/circle-logo-alt.png';
 import './App.css';
 import socketIOClient from "socket.io-client";
 import ReactJson from 'react-json-view'
