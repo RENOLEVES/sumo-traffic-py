@@ -51,7 +51,7 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("please declare environment variable 'SUMO_HOME'")
 
-sumoCmd = [sumo_binary_path, '-c', 'sumo-scenarios/Lachine/lachine.sumocfg']
+sumoCmd = [sumo_binary_path, '-c', 'sumo-scenarios/Montreal/montreal.sumocfg']
 print(sumoCmd)
 traci.start(sumoCmd)
 step = 0
