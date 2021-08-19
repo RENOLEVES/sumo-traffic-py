@@ -2,7 +2,7 @@ import os, sys
 import traci
 import time
 from sqlalchemy import create_engine
-
+from sqlalchemy.orm import sessionmaker
 
 
 ################## DB ##################
@@ -17,28 +17,29 @@ db_port = os.environ['POSTGRES_PORT']
 db_string = 'postgresql://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
 db = create_engine(db_string)
 
-def create_table():
-    db.execute( "CREATE TABLE IF NOT EXISTS vehicles (" + \
-                "vts INTEGER" + "," + \
-                "vtype TEXT" + "," + \
-                "vlon FLOAT" + "," + \
-                "vlat FLOAT" + \
-                ");" )
 
-def add_new_row(vts, vtype, vlon, vlat ):
-    # Insert a new number into the 'numbers' table.
-    cmd =   "INSERT INTO vehicles" + \
-            "(vts, vtype, vlon, vlat) " + \
-            "VALUES (" + \
-            str(vts) + "," + \
-            f"'{vtype}'" + "," + \
-            str(vlon) + "," + \
-            str(vlat) + \
-            ");"
-    # print(cmd)
-    db.execute(cmd)
+from sqlalchemy.orm import declarative_base
+Base = declarative_base()
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import sessionmaker
 
-# create_table()
+
+class Agent(Base):
+    __tablename__ = 'agents'
+    vid = Column(String, primary_key=True)
+    vts = Column(Integer, primary_key=True)
+    vtype = Column(String)
+    vlon = Column(Float)
+    vlat = Column(Float)
+    def __repr__(self):
+        return "<User(vid='%s', vts='%s', vtype='%s', vlon='%s', vlat='%s')>" % (
+         self.vid, self.vts, self.vtype, self.vlon, self.vlat)
+
+Base.metadata.create_all(db)
+
+Session = sessionmaker(bind=db)
+session = Session()
+
 
 #################### SUMO ####################
 
@@ -54,7 +55,7 @@ sumoCmd = [sumo_binary_path, '-c', 'sumo-scenarios/Lachine/lachine.sumocfg']
 print(sumoCmd)
 traci.start(sumoCmd)
 step = 0
-nr_steps_per_run = 10
+nr_steps_per_run = 5
 while step < 5000:
     [traci.simulationStep() for el in range(nr_steps_per_run)]
     vehicleIDS = traci.vehicle.getIDList()
@@ -67,12 +68,18 @@ while step < 5000:
         # print( vlon, vlat )
         # print( traci.vehicle.getVehicleClass(vehicleID) )
         # print( "---------------------------------" )
-        # add_new_row(step, vtype, vlon, vlat )
+        session.add( Agent( vid=vehicleID, 
+                            vts=step, 
+                            vtype= vtype,
+                            vlon= vlon,
+                            vlat= vlat ) )
         # time.sleep(.2)
+    session.commit()
+    # break
     print("--> ",step , "  ---   ", len(vehicleIDS))
     # break
     step += nr_steps_per_run
-    time.sleep(.002)
+    # time.sleep(.002)
     
 
 traci.close()

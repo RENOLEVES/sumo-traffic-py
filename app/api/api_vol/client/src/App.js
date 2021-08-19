@@ -30,7 +30,7 @@ class App extends Component {
     super();
     this.state={ clicks: 0, data: null}
     socket.on('floating info response', val => {
-      console.log( val.map((el) => el.vtype) )
+      console.log( val.map((el) => el) )
       this.setState({data: val.map((el) => el) });
     });
   }

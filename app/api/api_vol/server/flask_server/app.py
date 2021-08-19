@@ -1,8 +1,4 @@
-import json 
-import time
 import json
-
-
 import os
 import time
 import random
@@ -18,19 +14,19 @@ db_port = os.environ['POSTGRES_PORT']
 db_string = 'postgresql://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
 db = create_engine(db_string)
 
-def get_last_row(vts):
+def get_timestamp_all(vts):
     # Retrieve the last number inserted inside the 'numbers'
     query = "" + \
             "SELECT * " + \
-            "FROM vehicles " + \
-            f"WHERE vts = {vts} "
+            "FROM agents " + \
+            f"WHERE vts = {vts} " + \
+            "ORDER BY " + "vid" + " ASC"
     result_set = db.execute(query).mappings().all()
-    # r_dict = dict(result_set.items())
     return [dict(res) for res in result_set] if isinstance(result_set, list) else dict(result_set)
     
 
 # from pprint import pprint
-# last = get_last_row(vts=3)
+# last = get_timestamp_all(vts=10)
 # pprint(json.dumps(last))
 
 
@@ -58,7 +54,7 @@ def test_message(message):
 @socketio.on('floating info event')
 def test_message(message):
     print(message)
-    last = get_last_row(vts=message)
+    last = get_timestamp_all(vts=message)
     emit('floating info response', last)
 
 @socketio.on('connect')
