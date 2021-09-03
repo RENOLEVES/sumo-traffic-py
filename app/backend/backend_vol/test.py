@@ -1,5 +1,5 @@
+
 import os, sys
-import traci
 import time
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -31,6 +31,7 @@ class Agent(Base):
     vtype = Column(String)
     vlon = Column(Float)
     vlat = Column(Float)
+    vemis_co2 = Column(Float)
     def __repr__(self):
         return "<User(vid='%s', vts='%s', vtype='%s', vlon='%s', vlat='%s')>" % (
          self.vid, self.vts, self.vtype, self.vlon, self.vlat)
@@ -51,6 +52,10 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("please declare environment variable 'SUMO_HOME'")
 
+# import traci
+# import libsumo
+import libsumo as traci
+
 sumoCmd = [sumo_binary_path, '-c', 'sumo-scenarios/Montreal/montreal.sumocfg']
 print(sumoCmd)
 traci.start(sumoCmd)
@@ -63,17 +68,22 @@ while step < 5000:
         x, y = traci.vehicle.getPosition(vehicleID)
         vlon, vlat = traci.simulation.convertGeo(x, y)
         vtype = traci.vehicle.getVehicleClass(vehicleID)
+        emiss_co2 = round(traci.vehicle.getCO2Emission(vehicleID)/1000, 2)
+
         # print( vehicleID )
         # print( x, y )
         # print( vlon, vlat )
-        # print( traci.vehicle.getVehicleClass(vehicleID) )
+        # print( emiss_class )
         # print( "---------------------------------" )
-        session.add( Agent( vid=vehicleID, 
+
+        session.add( Agent( vid=vehicleID,
                             vts=step, 
                             vtype= vtype,
                             vlon= vlon,
-                            vlat= vlat ) )
-        # time.sleep(.2)
+                            vlat= vlat,
+                            vemis_co2=emiss_co2,
+                             ) )
+        # time.sleep(2)
     session.commit()
     # break
     print("--> ",step , "  ---   ", len(vehicleIDS))
