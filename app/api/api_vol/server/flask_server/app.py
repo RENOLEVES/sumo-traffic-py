@@ -14,7 +14,8 @@ db_port = os.environ['POSTGRES_PORT']
 db_string = 'postgresql://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
 db = create_engine(db_string)
 
-def get_timestamp_all(vts):
+def get_timestamp_all(message):
+    vts = message
     # Retrieve the last number inserted inside the 'numbers'
     query = "" + \
             "SELECT * " + \
@@ -25,9 +26,25 @@ def get_timestamp_all(vts):
     return [dict(res) for res in result_set] if isinstance(result_set, list) else dict(result_set)
     
 
+def get_emis_co2(message):
+    print(f"message: {message}")
+    vid = message['vid']
+    vts = message['vts']
+    # Retrieve the last number inserted inside the 'numbers'
+    query = "" + \
+            "SELECT vemis_co2 " + \
+            "FROM agents " + \
+            f"WHERE vid = '{vid}' " + \
+            f"AND vts <= {vts} " + \
+            "ORDER BY " + "vid" + " ASC"
+    print(query)
+    result_set = db.execute(query).mappings().all()
+    return [res.vemis_co2 for res in result_set] if isinstance(result_set, list) else dict(result_set)
+    
+
 # from pprint import pprint
-# last = get_timestamp_all(vts=10)
-# pprint(json.dumps(last))
+# last = get_emis_co2("veh2", vts=10000)
+# print(last)
 
 
 
@@ -47,23 +64,23 @@ def index():
 def home():
     return "Home page"
 
-@socketio.on('my event')
-def test_message(message):
-    emit('my response', {'data1': message})
+# @socketio.on('my event')
+# def test_message(message):
+#     emit('my response', {'data1': message})
 
-@socketio.on('floating info event')
-def test_message(message):
-    print(message)
-    last = get_timestamp_all(vts=message)
-    emit('floating info response', last)
+@socketio.on('veh_ts_req')
+def handle_ts(message):
+    last = get_timestamp_all(message)
+    emit('veh_ts_res', last)
+
+@socketio.on('veh_co2_req')
+def handle_co2(message):
+    last = get_emis_co2(message)
+    emit('veh_co2_res', last)
 
 @socketio.on('connect')
 def test_connect(sid):
     print(50*'0')
-    # socketio.start_background_task(task, sid)
-    # for i in range(1000):
-    #     emit('my response', js_obj)
-    #     socketio.sleep(1)
     print('Client CONNECTED')
     print(50*'1')
 
