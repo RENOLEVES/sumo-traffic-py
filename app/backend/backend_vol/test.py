@@ -56,37 +56,38 @@ else:
 # import libsumo
 import libsumo as traci
 
-sumoCmd = [sumo_binary_path, '-c', 'sumo-scenarios/Montreal/montreal.sumocfg']
+sumoCmd = [sumo_binary_path, '-c', 'sumo-scenarios/Montreal/montreal.sumocfg', '--verbose']
 print(sumoCmd)
 traci.start(sumoCmd)
 step = 0
 nr_steps_per_run = 5
 while step < 5000:
     [traci.simulationStep() for el in range(nr_steps_per_run)]
-    vehicleIDS = traci.vehicle.getIDList()
-    for vehicleID in vehicleIDS:
-        x, y = traci.vehicle.getPosition(vehicleID)
-        vlon, vlat = traci.simulation.convertGeo(x, y)
-        vtype = traci.vehicle.getVehicleClass(vehicleID)
-        emiss_co2 = round(traci.vehicle.getCO2Emission(vehicleID)/1000, 2)
+    # vehicleIDS = traci.vehicle.getIDList()
+    # for vehicleID in vehicleIDS:
+    #     x, y = traci.vehicle.getPosition(vehicleID)
+    #     vlon, vlat = traci.simulation.convertGeo(x, y)
+    #     vtype = traci.vehicle.getVehicleClass(vehicleID)
+    #     emiss_co2 = round(traci.vehicle.getCO2Emission(vehicleID)/1000, 2)
 
-        # print( vehicleID )
-        # print( x, y )
-        # print( vlon, vlat )
-        # print( emiss_class )
-        # print( "---------------------------------" )
+    #     # print( vehicleID )
+    #     # print( x, y )
+    #     # print( vlon, vlat )
+    #     # print( emiss_class )
+    #     # print( "---------------------------------" )
 
-        session.add( Agent( vid=vehicleID,
-                            vts=step, 
-                            vtype= vtype,
-                            vlon= vlon,
-                            vlat= vlat,
-                            vemis_co2=emiss_co2,
-                             ) )
-        # time.sleep(2)
-    session.commit()
+    #     session.add( Agent( vid=vehicleID,
+    #                         vts=step, 
+    #                         vtype= vtype,
+    #                         vlon= vlon,
+    #                         vlat= vlat,
+    #                         vemis_co2=emiss_co2,
+    #                          ) )
+    #     # time.sleep(2)
+    # session.commit()
     # break
-    print("--> ",step , "  ---   ", len(vehicleIDS))
+    # print("--> ",step , "  ---   ", len(vehicleIDS))
+    print("--> ",step , "  ---   ")
     # break
     step += nr_steps_per_run
     # time.sleep(.002)

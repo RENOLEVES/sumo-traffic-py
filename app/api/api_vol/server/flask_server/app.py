@@ -12,6 +12,7 @@ db_port = os.environ['POSTGRES_PORT']
 
 # Connect to the database
 db_string = 'postgresql://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
+print(db_string)
 db = create_engine(db_string)
 
 def get_timestamp_all(message):

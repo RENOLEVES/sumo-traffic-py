@@ -1,70 +1,87 @@
-version: '3.5'
-
+version: "3.6"
 services:
-    postgres:
-        container_name: postgres_container
-        image: postgres
-        env_file:
-            - 'variables.env'
-        volumes:
-            - ./database/postgres_vol:/data/postgres
-        ports:
-            - 5432:5432
-        networks:
-            postgres:
-                ipv4_address: 10.5.0.6
-        restart: unless-stopped
+  postgres:
+    container_name: postgres_container
+    image: postgres:12
+    restart: always
+    env_file:
+      - ".env"
+    volumes:
+      - ./database/postgres_vol:/data/postgres
+    networks:
+      postgres:
+        ipv4_address: 10.5.0.6
 
-    pgadmin:
-        container_name: pgadmin_container
-        image: dpage/pgadmin4
-        env_file:
-            - 'variables.env'
-        volumes:
-            - ./database/pgadmin_vol:/var/lib/pgadmin
-        ports:
-            - 5050:80
-        networks:
-            - postgres
-        restart: unless-stopped
+  graphql-engine:
+    container_name: graphql_container
+    image: hasura/graphql-engine:v2.0.9
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "postgres"
+    restart: always
+    env_file:
+      - ".env"
+    networks:
+      - postgres
+    environment:
+      ## postgres database to store Hasura metadata
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/postgres
+      ## this env var can be used to add the above postgres database to Hasura as a data source. this can be removed/updated based on your needs
+      PG_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/postgres
+      ## enable the console served by server
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      ## enable debugging mode. It is recommended to disable this in production
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      # HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
 
-    backend:
-        container_name: backend_container
-        build: app/backend
-        image: backend
-        volumes:
-            - ./app/backend/backend_vol:/home
-        env_file:
-            - 'variables.env'
-        networks:
-            - postgres
-        command: tail -f /dev/null # keeping the container alive
-        restart: unless-stopped
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    env_file:
+      - ".env"
+    volumes:
+      - ./database/pgadmin_vol:/var/lib/pgadmin
+    ports:
+      - 5050:80
+    networks:
+      - postgres
+    restart: unless-stopped
 
-    api:
-        container_name: api_container
-        build: app/api
-        image: api
-        volumes:
-            - './app/api/api_vol:/code'
-        env_file:
-            - 'variables.env'
-        ports:
-            - '5000:5000'
-            - '8000:8000'
-        command: tail -f /dev/null # keeping the container alive
-        networks:
-            - postgres
-        restart: unless-stopped
+  backend:
+    container_name: backend_container
+    build: app/backend
+    image: backend
+    volumes:
+      - ./app/backend/backend_vol:/home
+    env_file:
+      - ".env"
+    networks:
+      - postgres
+    command: tail -f /dev/null # keeping the container alive
+    restart: unless-stopped
+
+  api:
+    container_name: api_container
+    build: app/api
+    image: api
+    volumes:
+      - "./app/api/api_vol:/code"
+    env_file:
+      - ".env"
+    ports:
+      - "5000:5000"
+      - "8000:8000"
+    command: tail -f /dev/null # keeping the container alive
+    networks:
+      - postgres
+    restart: unless-stopped
 
 networks:
-    postgres:
-        driver: bridge
-        ipam:
-         config:
-           - subnet: 10.5.0.0/16
-             gateway: 10.5.0.1
-
-volumes:
-    sumo_home_vol:
-#     sumo_dep_vol:
+  postgres:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
