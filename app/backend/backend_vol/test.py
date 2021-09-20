@@ -28,16 +28,17 @@ Base = declarative_base()
 
 class Agent(Base):
     __tablename__ = 'agents'
-    vid = Column(String, primary_key=True)
-    vts = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    vname = Column(String)
+    vts = Column(Integer)
     vtype = Column(String)
     vlon = Column(Float)
     vlat = Column(Float)
     vemis_co2 = Column(Float)
 
     def __repr__(self):
-        return "<User(vid='%s', vts='%s', vtype='%s', vlon='%s', vlat='%s')>" % (
-            self.vid, self.vts, self.vtype, self.vlon, self.vlat)
+        return "<User(id='%s', vname='%s', vts='%s', vtype='%s', vlon='%s', vlat='%s')>" % (
+            self.id, self.vname, self.vts, self.vtype, self.vlon, self.vlat)
 
 
 Base.metadata.create_all(db)
@@ -88,7 +89,7 @@ while step < 5000:
         # print( emiss_class )
         # print( "---------------------------------" )
 
-        session.add( Agent( vid=vehicleID,
+        session.add( Agent( vname=vehicleID,
                             vts=step,
                             vtype= vtype,
                             vlon= vlon,

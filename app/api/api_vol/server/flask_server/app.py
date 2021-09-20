@@ -1,43 +1,59 @@
-import json
-import os
-import time
-import random
-from sqlalchemy import create_engine
+from db_connection import DBConn 
+from db_query import AgentQuery
 
-db_name = 'postgres'
-db_user = os.environ['POSTGRES_USER']
-db_pass = os.environ['POSTGRES_PASSWORD']
-db_host = os.environ['POSTGRES_HOST']
-db_port = os.environ['POSTGRES_PORT']
+# create a database connection instance
+Conn = DBConn()
+# create a Session instance
+session = Conn.get_db_session()
+# get table data model
+Agents = Conn.get_db_table("agents")
 
-# Connect to the database
-db_string = 'postgresql://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
-print(db_string)
-db = create_engine(db_string)
+# create a db query instance
+agentQuery = AgentQuery(session=session, model=Agents)
+# res = agentQuery.query_floating_time_range(value=10, bufferLength=115)
+# print( res )
 
-def get_timestamp_all(message):
-    vts = message
-    # Retrieve the last number inserted inside the 'numbers'
-    query = "" + \
-            "SELECT * " + \
-            "FROM agents " + \
-            f"WHERE vts = {vts} " + \
-            "ORDER BY " + "vid" + " ASC"
-    result_set = db.execute(query).mappings().all()
-    return [dict(res) for res in result_set] if isinstance(result_set, list) else dict(result_set)
+
+
+
+
+# def get_timestamp_all(vts):
+#     # result = session.execute(select(Agents).where(Agents.vts == vts))
+#     # # print( "result:   ", result.scalars() )
+#     # for agent_obj in result.scalars():
+#     #     print(f"{agent_obj.vname} {agent_obj.vts}")
+#     records = session.query(Agents).filter(Agents).first()
+#         # .(vname == 'veh0')
+#         # .all()
+        
+        
+#     for record in records:
+#         print("----------------")
+#         print(record)
+        
+#     # vts = message
+#     # # Retrieve the last number inserted inside the 'numbers'
+#     # query = "" + \
+#     #         "SELECT vname, vts " + \
+#     #         "FROM agents " + \
+#     #         f"WHERE vts = {vts} " + \
+#     #         "ORDER BY " + "vname" + " ASC"
+#     # result_set = db.execute(query).mappings().all()
+#     # print([res for res in result_set])
+
+#     # return [dict(res) for res in result_set] if isinstance(result_set, list) else dict(result_set)
     
 
 def get_emis_co2(message):
     print(f"message: {message}")
-    vid = message['vid']
+    vname = message['vname']
     vts = message['vts']
-    # Retrieve the last number inserted inside the 'numbers'
     query = "" + \
             "SELECT vemis_co2 " + \
             "FROM agents " + \
-            f"WHERE vid = '{vid}' " + \
+            f"WHERE vname = '{vname}' " + \
             f"AND vts <= {vts} " + \
-            "ORDER BY " + "vid" + " ASC"
+            "ORDER BY " + "vname" + " ASC"
     print(query)
     result_set = db.execute(query).mappings().all()
     return [res.vemis_co2 for res in result_set] if isinstance(result_set, list) else dict(result_set)
@@ -69,27 +85,30 @@ def home():
 # def test_message(message):
 #     emit('my response', {'data1': message})
 
-@socketio.on('veh_ts_req')
-def handle_ts(message):
-    last = get_timestamp_all(message)
-    emit('veh_ts_res', last)
+@socketio.on('ts_req')
+def handle_ts(value):
+    last = res = agentQuery.query_floating_time_range(value=value, bufferLength=15)
+    emit('ts_res', last)
 
-@socketio.on('veh_co2_req')
+@socketio.on('co2_req')
 def handle_co2(message):
     last = get_emis_co2(message)
-    emit('veh_co2_res', last)
+    emit('co2_res', last)
 
 @socketio.on('connect')
 def test_connect(sid):
     print(50*'0')
     print('Client CONNECTED')
     print(50*'1')
+    emit('connect', 'SOCKET CONNECTED')
 
 @socketio.on('disconnect')
 def test_disconnect():
     print(50*'2')
     print('Client DISCONNECTED')
     print(50*'3')
+    emit('disconnect', 'SOCKET DISCONNECTED')
+    
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=8000)
