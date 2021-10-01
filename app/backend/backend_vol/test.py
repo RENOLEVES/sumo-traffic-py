@@ -91,7 +91,7 @@ while step < 5000:
 
         session.add( Agent( vname=vehicleID,
                             vts=step,
-                            vtype= vtype,
+                            vtype= vtype,                        
                             vlon= vlon,
                             vlat= vlat,
                             vemis_co2=emiss_co2,

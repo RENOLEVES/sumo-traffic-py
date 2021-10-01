@@ -10,8 +10,8 @@ Agents = Conn.get_db_table("agents")
 
 # create a db query instance
 agentQuery = AgentQuery(session=session, model=Agents)
-# res = agentQuery.query_floating_time_range(value=10, bufferLength=115)
-# print( res )
+res = agentQuery.query_floating_time_range(value=10, bufferLength=115)
+print( res )
 
 
 
@@ -44,16 +44,17 @@ agentQuery = AgentQuery(session=session, model=Agents)
 #     # return [dict(res) for res in result_set] if isinstance(result_set, list) else dict(result_set)
     
 
-def get_emis_co2(message):
+def get_emis(message):
     print(f"message: {message}")
+    emis_name = message.name
     vname = message['vname']
     vts = message['vts']
     query = "" + \
-            "SELECT vemis_co2 " + \
-            "FROM agents " + \
+            f"SELECT vemis_{emis_name} " + \
+             "FROM agents " + \
             f"WHERE vname = '{vname}' " + \
             f"AND vts <= {vts} " + \
-            "ORDER BY " + "vname" + " ASC"
+             "ORDER BY " + "vname" + " ASC"
     print(query)
     result_set = db.execute(query).mappings().all()
     return [res.vemis_co2 for res in result_set] if isinstance(result_set, list) else dict(result_set)
@@ -85,15 +86,16 @@ def home():
 # def test_message(message):
 #     emit('my response', {'data1': message})
 
-@socketio.on('ts_req')
+@socketio.on('float_req')
 def handle_ts(value):
-    last = res = agentQuery.query_floating_time_range(value=value, bufferLength=15)
-    emit('ts_res', last)
+    value, bufferLength = value
+    last = agentQuery.query_floating_time_range(value=value, bufferLength=bufferLength)
+    emit('float_res', last)
 
-@socketio.on('co2_req')
-def handle_co2(message):
-    last = get_emis_co2(message)
-    emit('co2_res', last)
+@socketio.on('emis_req')
+def handle_emis(message):
+    last = get_emis(message)
+    emit('emis_res', last)
 
 @socketio.on('connect')
 def test_connect(sid):
