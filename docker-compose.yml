@@ -7,7 +7,8 @@ services:
     env_file:
       - ".env"
     volumes:
-      - ./database/postgres_vol:/data/postgres
+      # - ./database/postgres_vol:/data/postgres
+      - ./database/postgres_vol:/var/lib/postgresql/data
     networks:
       postgres:
         ipv4_address: 10.5.0.6
