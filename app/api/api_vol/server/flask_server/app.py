@@ -12,7 +12,7 @@ Agents = Conn.get_db_table("agents")
 
 # create a db query instance
 agentQuery = AgentQuery(session=session, model=Agents)
-res = agentQuery.query_emission_time_range(time_value=10, buffer_length=115, emission_ids=['vts', 'vlon','vname'])
+# res = agentQuery.query_emission_time_range(time_value=10, buffer_length=115, emission_ids=['vts', 'vlon','vname'])
 # from pprint import pprint
 # pprint(res)
 # for el in res:
@@ -62,8 +62,8 @@ def home():
 
 @socketio.on('float_req')
 def handle_ts(value):
-    value, buffer_length = value
-    last = agentQuery.query_floating_time_range(time_value=value, buffer_length=buffer_length)
+    time_value, buffer_length, emission_ids = value
+    last = agentQuery.query_emission_time_range(time_value=time_value, buffer_length=buffer_length, emission_ids=emission_ids)
     emit('float_res', last)
 
 
