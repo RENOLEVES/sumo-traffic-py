@@ -1,13 +1,12 @@
-
-import traci
-from sqlalchemy import Column, Integer, String, Float
-from sqlalchemy.orm import declarative_base
-import os
-import sys
-import time
-from sqlalchemy import create_engine
+import geopandas as gpd
+import json
 from sqlalchemy.orm import sessionmaker
-
+from geoalchemy2 import Geometry, WKTElement
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.ext.declarative import declarative_base
+import os
+from sqlalchemy import create_engine, inspect
+import random
 
 ################## DB ##################
 
@@ -20,89 +19,42 @@ db_port = os.environ['POSTGRES_PORT']
 # Connect to the database
 db_string = 'postgresql://{}:{}@{}:{}/{}'.format(
     db_user, db_pass, db_host, db_port, db_name)
-db = create_engine(db_string)
+engine = create_engine(db_string, echo=False)
+engine.execute('CREATE EXTENSION IF NOT EXISTS postgis')
+SRID = 4326
 
 
-Base = declarative_base()
+################## Grab Footprint Data ##################
 
 
-class Agent(Base):
-    __tablename__ = 'agents'
-    id = Column(Integer, primary_key=True)
-    vname = Column(String)
-    vts = Column(Integer)
-    vtype = Column(String)
-    vlon = Column(Float)
-    vlat = Column(Float)
-    vemis_co2 = Column(Float)
+################## Parse Footprint Data ##################
+print("################## Parse Footprint Data ##################")
+bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
+fpath = "Quebec.geojson"
+geodataframe = gpd.read_file(fpath, bbox=bbox_Montreal)
+print(geodataframe.head())
+print(geodataframe.size)
 
-    def __repr__(self):
-        return "<User(id='%s', vname='%s', vts='%s', vtype='%s', vlon='%s', vlat='%s')>" % (
-            self.id, self.vname, self.vts, self.vtype, self.vlon, self.vlat)
+################## Store Footprint Data ##################
+print("################## Convert to WKT Footprint Data ##################")
+geodataframe['geom'] = geodataframe['geometry'].apply(
+    lambda x: WKTElement(x.wkt, srid=SRID))
 
+# drop the geometry column as it is now duplicative
+geodataframe.drop('geometry', 1, inplace=True)
 
-Base.metadata.create_all(db)
+print("################## Add Random Height Footprint Data ##################")
+# add random height column
+geodataframe['height'] = [3 + 10*random.gammavariate(3,1) for e in range(len(geodataframe))]
 
-Session = sessionmaker(bind=db)
-session = Session()
-
-
-#################### SUMO ####################
-
-if 'SUMO_HOME' in os.environ:
-    sumo_tools_path = os.path.join(os.environ['SUMO_HOME'], 'tools')
-    sumo_binary_path = os.path.join(os.environ['SUMO_HOME'], 'bin/sumo')
-    sumo_gui_binary_path = os.path.join(
-        os.environ['SUMO_HOME'], 'bin/sumo-gui')
-    sys.path.append(sumo_tools_path)
-else:
-    sys.exit("please declare environment variable 'SUMO_HOME'")
-
-# import traci
-# import libsumo
-
-sumoCmd = [sumo_binary_path, '-c', 'sumo-scenarios/Montreal/montreal.sumocfg']
-print(sumoCmd)
-traci.start(sumoCmd)
-step = 0
-nr_steps_per_run = 5
-tt = time.time()
-while step < 5000:
-    [traci.simulationStep() for el in range(nr_steps_per_run)]
-    # traci.simulationStep()
-    # step += nr_steps_per_run
-    if step%60==0:
-        print(round(time.time()-tt, 1), " seconds")
-        tt = time.time()
-    # print("--> ", step, "  ---   ", round(t0-tt, 1), " seconds")
-    # continue
-    vehicleIDS = traci.vehicle.getIDList()
-    for vehicleID in vehicleIDS:
-        x, y = traci.vehicle.getPosition(vehicleID)
-        vlon, vlat = traci.simulation.convertGeo(x, y)
-        vtype = traci.vehicle.getVehicleClass(vehicleID)
-        emiss_co2 = round(traci.vehicle.getCO2Emission(vehicleID)/1000, 2)
-
-        # print( vehicleID )
-        # print( x, y )
-        # print( vlon, vlat )
-        # print( emiss_class )
-        # print( "---------------------------------" )
-
-        session.add( Agent( vname=vehicleID,
-                            vts=step,
-                            vtype= vtype,                        
-                            vlon= vlon,
-                            vlat= vlat,
-                            vemis_co2=emiss_co2,
-                             ) )
-    session.commit()
-    # break
-    print("--> ",step , "  ---   ", len(vehicleIDS))
-    # print("--> ", step, "  ---   ")
-    # break
-    step += nr_steps_per_run
-    # time.sleep(.002)
-
-
-traci.close()
+# For the geom column, we will use GeoAlchemy's type 'Geometry'
+print("################## Writing to SQL Footprint Data ##################")
+geodataframe.to_sql(name='building_footprint_ms', 
+                    con= engine, 
+                    if_exists='replace', 
+                    index=True,
+                    chunksize=1000,
+                    dtype={
+                        'height' : Float,
+                        'geom': Geometry('POLYGON', srid=SRID),
+                        })

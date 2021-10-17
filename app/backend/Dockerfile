@@ -13,8 +13,6 @@ RUN apt-get -y update; apt-get -y install software-properties-common; add-apt-re
 RUN apt-get -y update; apt-get -y install sumo sumo-tools sumo-doc
 
 # setting bash dir
+COPY requirements.txt /home/requirements.txt
 WORKDIR /home
-
-COPY requirements.txt .
 RUN pip install -r requirements.txt
-
