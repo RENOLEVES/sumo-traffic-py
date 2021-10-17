@@ -35,12 +35,12 @@ class Agent(Base):
     vlon = Column(Float)
     vlat = Column(Float)
     vemis_co2 = Column(Float)
-    emiss_co = Column(Float)
-    emiss_hc = Column(Float)
-    emiss_nox = Column(Float)
-    emiss_pm25 = Column(Float)
-    emiss_noise = Column(Float)
-    fuel = Column(Float)
+    vemis_co = Column(Float)
+    vemis_hc = Column(Float)
+    vemis_nox = Column(Float)
+    vemis_pm25 = Column(Float)
+    vemis_noise = Column(Float)
+    vfuel = Column(Float)
 
     def __repr__(self):
         return "<User(id='%s', vname='%s', vts='%s', vtype='%s', vlon='%s', vlat='%s')>" % (
@@ -107,11 +107,11 @@ while step < 5000:
                           vlon=vlon,
                           vlat=vlat,
                           vemis_co2=emiss_co2,
-                          vemiss_co=emiss_co,
-                          vemiss_hc=emiss_hc,
-                          vemiss_nox=emiss_nox,
-                          vemiss_pm25=emiss_pm25,
-                          vemiss_noise=emiss_noise,
+                          vemis_co=emiss_co,
+                          vemis_hc=emiss_hc,
+                          vemis_nox=emiss_nox,
+                          vemis_pm25=emiss_pm25,
+                          vemis_noise=emiss_noise,
                           vfuel=fuel,
                           ))
     session.commit()
