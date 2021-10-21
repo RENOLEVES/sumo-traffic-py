@@ -33,7 +33,7 @@ SRID = 4326
 print("################## Parse Footprint Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "power_grid.geojson"
+fpath = "blobs/power_grid.geojson"
 geodataframe = gpd.read_file(fpath)
 print(geodataframe.shape)
 

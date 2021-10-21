@@ -32,7 +32,7 @@ SRID = 4326
 print("################## Parse Footprint Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "gas_stations.json"
+fpath = "blobs/gas_stations.json"
 with open(fpath, 'r') as f:
     jsonContent = json.load(f)
 df = pd.DataFrame(

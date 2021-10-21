@@ -33,7 +33,7 @@ SRID = 4326
 print("################## Parse Footprint Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "land_use.geojson"
+fpath = "blobs/land_use.geojson"
 geodataframe = gpd.read_file(fpath)
 geodataframe.set_crs(epsg=2950, inplace=True, allow_override=True)
 geodataframe = geodataframe.to_crs(epsg=SRID, inplace=False)

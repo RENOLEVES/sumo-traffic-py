@@ -33,7 +33,7 @@ SRID = 4326
 print("################## Parse Footprint Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpaths = [f"waste_collection_zones{i}.geojson" for i in range(1,7)]
+fpaths = [f"blobs/waste_collection_zones{i}.geojson" for i in range(1,7)]
 geodataframe = gpd.GeoDataFrame(pd.concat([gpd.read_file(i) for i in fpaths], 
                         ignore_index=True), crs=SRID)
 

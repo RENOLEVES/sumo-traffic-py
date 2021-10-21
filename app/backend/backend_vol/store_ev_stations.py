@@ -33,7 +33,7 @@ SRID = 4326
 print("################## Parse Footprint Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "ev_stations.json"
+fpath = "blobs/ev_stations.json"
 with open(fpath, 'r') as f:
     jsonContent = json.load(f)
 columns = jsonContent[0].keys()

@@ -30,7 +30,7 @@ SRID = 4326
 ################## Parse Footprint Data ##################
 print("################## Parse Footprint Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
-fpath = "Quebec.geojson"
+fpath = "blobs/building_footprint_ms.geojson"
 geodataframe = gpd.read_file(fpath, bbox=bbox_Montreal)
 print(geodataframe.head())
 print(geodataframe.size)
