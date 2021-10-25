@@ -26,11 +26,11 @@ engine.execute('CREATE EXTENSION IF NOT EXISTS postgis')
 SRID = 4326
 
 
-################## Grab Footprint Data ##################
+################## Grab Data ##################
 
 
-################## Parse Footprint Data ##################
-print("################## Parse Footprint Data ##################")
+################## Parse Data ##################
+print("################## Parse Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
 fpath = "blobs/land_use.geojson"
@@ -39,8 +39,8 @@ geodataframe.set_crs(epsg=2950, inplace=True, allow_override=True)
 geodataframe = geodataframe.to_crs(epsg=SRID, inplace=False)
 print(geodataframe.shape)
 
-################## Store Footprint Data ##################
-print("################## Convert to WKT Footprint Data ##################")
+################## Store Data ##################
+print("################## Convert to WKT Data ##################")
 geodataframe['geom'] = geodataframe['geometry'].apply(
     lambda x: WKTElement(x.wkt, srid=SRID))
 
@@ -48,7 +48,7 @@ geodataframe['geom'] = geodataframe['geometry'].apply(
 geodataframe.drop('geometry', 1, inplace=True)
 
 # For the geom column, we will use GeoAlchemy's type 'Geometry'
-print("################## Writing to SQL Footprint Data ##################")
+print("################## Writing to SQL Data ##################")
 geodataframe.to_sql(name='land_use',
                     con= engine,
                     if_exists='replace',

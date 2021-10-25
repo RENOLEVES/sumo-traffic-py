@@ -26,28 +26,20 @@ engine.execute('CREATE EXTENSION IF NOT EXISTS postgis')
 SRID = 4326
 
 
-################## Grab Footprint Data ##################
+################## Grab Data ##################
 
 
-################## Parse Footprint Data ##################
-print("################## Parse Footprint Data ##################")
+################## Parse Data ##################
+print("################## Parse Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "blobs/ev_stations.json"
-with open(fpath, 'r') as f:
-    jsonContent = json.load(f)
-columns = jsonContent[0].keys()
-parsed_data = [ {"type": "Feature", "properties": el,"geometry": {"type": "Point", "coordinates":[el['Long'], el['Lat']]}} for el in jsonContent]
-geodataframe = gpd.GeoDataFrame.from_features(parsed_data)
-geodataframe = geodataframe.drop(columns=['Lat'])
-geodataframe = geodataframe.drop(columns=['Long'])
-print(geodataframe.head())
-print(geodataframe.shape)
-print(geodataframe.columns)
+fpath = "blobs/ev_stations.geojson"
+geodataframe = gpd.read_file(fpath)
+geodataframe = geodataframe[['name', 'geometry']]
 
 
-################## Store Footprint Data ##################
-print("################## Convert to WKT Footprint Data ##################")
+################## Store Data ##################
+print("################## Convert to WKT Data ##################")
 geodataframe['geom'] = geodataframe['geometry'].apply(
     lambda x: WKTElement(x.wkt, srid=SRID))
 
@@ -55,7 +47,7 @@ geodataframe['geom'] = geodataframe['geometry'].apply(
 geodataframe.drop('geometry', 1, inplace=True)
 
 # For the geom column, we will use GeoAlchemy's type 'Geometry'
-print("################## Writing to SQL Footprint Data ##################")
+print("################## Writing to SQL Data ##################")
 geodataframe.to_sql(name='ev_stations',
                     con= engine,
                     if_exists='replace',

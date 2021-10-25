@@ -8,6 +8,8 @@ from sqlalchemy.ext.declarative import declarative_base
 import os
 from sqlalchemy import create_engine, inspect
 import random
+import pprint
+import glob
 
 
 ################## DB ##################
@@ -26,19 +28,25 @@ engine.execute('CREATE EXTENSION IF NOT EXISTS postgis')
 SRID = 4326
 
 
-################## Grab Footprint Data ##################
+################## Grab Data ##################
 
 
-################## Parse Footprint Data ##################
-print("################## Parse Footprint Data ##################")
+################## Parse  Data ##################
+print("################## Parse  Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpaths = [f"blobs/waste_collection_zones{i}.geojson" for i in range(1,7)]
-geodataframe = gpd.GeoDataFrame(pd.concat([gpd.read_file(i) for i in fpaths], 
-                        ignore_index=True), crs=SRID)
+fpath = [e for e in glob.glob('blobs/*') if 'waste' in e]
+print(fpath)
 
-################## Store Footprint Data ##################
-print("################## Convert to WKT Footprint Data ##################")
+
+
+geodataframes = [gpd.read_file(f) for f in fpath]
+print([el.shape for el in geodataframes])
+geodataframe = pd.concat(geodataframes)
+print(geodataframe.shape)
+
+################## Store  Data ##################
+print("################## Convert to WKT  Data ##################")
 geodataframe['geom'] = geodataframe['geometry'].apply(
     lambda x: WKTElement(x.wkt, srid=SRID))
 
@@ -46,7 +54,7 @@ geodataframe['geom'] = geodataframe['geometry'].apply(
 geodataframe.drop('geometry', 1, inplace=True)
 
 # For the geom column, we will use GeoAlchemy's type 'Geometry'
-print("################## Writing to SQL Footprint Data ##################")
+print("################## Writing to SQL  Data ##################")
 geodataframe.to_sql(name='waste_collection_zones',
                     con= engine,
                     if_exists='replace',

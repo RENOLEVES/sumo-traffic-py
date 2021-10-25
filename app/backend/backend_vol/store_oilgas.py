@@ -8,6 +8,9 @@ from sqlalchemy.ext.declarative import declarative_base
 import os
 from sqlalchemy import create_engine, inspect
 import random
+import pprint
+import glob
+
 
 ################## DB ##################
 
@@ -28,17 +31,22 @@ SRID = 4326
 ################## Grab Data ##################
 
 
-################## Parse Data ##################
-print("################## Parse Data ##################")
+################## Parse  Data ##################
+print("################## Parse  Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "blobs/gas_stations.geojson"
-geodataframe = gpd.read_file(fpath)
-geodataframe = geodataframe[['name', 'geometry']]
+fpath = [e for e in glob.glob('blobs/*') if 'oilgas' in e]
+print(fpath)
 
 
-################## Store Data ##################
-print("################## Convert to WKT Data ##################")
+
+geodataframes = [gpd.read_file(f) for f in fpath]
+print([el.shape for el in geodataframes])
+geodataframe = pd.concat(geodataframes)
+print(geodataframe.shape)
+
+################## Store  Data ##################
+print("################## Convert to WKT  Data ##################")
 geodataframe['geom'] = geodataframe['geometry'].apply(
     lambda x: WKTElement(x.wkt, srid=SRID))
 
@@ -46,13 +54,13 @@ geodataframe['geom'] = geodataframe['geometry'].apply(
 geodataframe.drop('geometry', 1, inplace=True)
 
 # For the geom column, we will use GeoAlchemy's type 'Geometry'
-print("################## Writing to SQL Data ##################")
-geodataframe.to_sql(name='gas_stations',
+print("################## Writing to SQL  Data ##################")
+geodataframe.to_sql(name='oilgas_installments',
                     con= engine,
                     if_exists='replace',
-                    index=False,
+                    index=True,
                     chunksize=100,
                     dtype={
-                        'name' : String,
-                        'geom': Geometry('POINT', srid=SRID),
-                        })
+                        'geom': Geometry('Geometry', srid=SRID),
+                        }
+                    )

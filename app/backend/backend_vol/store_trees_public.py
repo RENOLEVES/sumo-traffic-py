@@ -9,6 +9,7 @@ import os
 from sqlalchemy import create_engine, inspect
 import random
 
+
 ################## DB ##################
 
 db_name = 'postgres'
@@ -29,30 +30,37 @@ SRID = 4326
 
 
 ################## Parse Data ##################
-print("################## Parse Data ##################")
+print("################## Parse  Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "blobs/gas_stations.geojson"
+fpath = "blobs/arbres-publics.csv"
 geodataframe = gpd.read_file(fpath)
-geodataframe = geodataframe[['name', 'geometry']]
-
+geodataframe = geodataframe[geodataframe['Longitude']!=""]
+geodataframe = geodataframe[geodataframe['Latitude']!=""]
+geodataframe.drop('geometry', axis=1, inplace=True)
+gdf = gpd.GeoDataFrame(
+    geodataframe, geometry=gpd.points_from_xy(geodataframe['Longitude'], geodataframe['Latitude']))
+# geodataframe.drop('Longitude', axis=1, inplace=True)
+# geodataframe.drop('Latitude', axis=1, inplace=True)
+geodataframe.drop('Coord_X', axis=1, inplace=True)
+geodataframe.drop('Coord_Y', axis=1, inplace=True)
 
 ################## Store Data ##################
-print("################## Convert to WKT Data ##################")
+print("################## Convert to WKT  Data ##################")
 geodataframe['geom'] = geodataframe['geometry'].apply(
     lambda x: WKTElement(x.wkt, srid=SRID))
 
 # drop the geometry column as it is now duplicative
-geodataframe.drop('geometry', 1, inplace=True)
+geodataframe.drop('geometry', axis=1, inplace=True)
 
 # For the geom column, we will use GeoAlchemy's type 'Geometry'
-print("################## Writing to SQL Data ##################")
-geodataframe.to_sql(name='gas_stations',
+print("################## Writing to SQL  Data ##################")
+geodataframe.to_sql(name='trees_public',
                     con= engine,
                     if_exists='replace',
-                    index=False,
+                    index=True,
                     chunksize=100,
                     dtype={
-                        'name' : String,
-                        'geom': Geometry('POINT', srid=SRID),
-                        })
+                        'geom': Geometry('Geometry', srid=SRID),
+                        }
+                    )

@@ -8,7 +8,8 @@ from sqlalchemy.ext.declarative import declarative_base
 import os
 from sqlalchemy import create_engine, inspect
 import random
-
+import glob
+import pprint
 
 ################## DB ##################
 
@@ -26,20 +27,28 @@ engine.execute('CREATE EXTENSION IF NOT EXISTS postgis')
 SRID = 4326
 
 
-################## Grab Footprint Data ##################
+################## Grab  Data ##################
 
 
-################## Parse Footprint Data ##################
-print("################## Parse Footprint Data ##################")
+################## Parse  Data ##################
+print("################## Parse  Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "blobs/power_grid.geojson"
-geodataframe = gpd.read_file(fpath)
+fpath = [
+#  './blobs/powe_r_ring.geojson',
+ './blobs/power_items.geojson',
+ './blobs/power_substations_canvec1.geojson',
+ './blobs/power_substations_canvec2.geojson',
+ './blobs/powerlines_canvec.geojson']
+
+pprint.pprint(fpath)
+geodataframes = [gpd.read_file(f) for f in fpath]
+print([el.shape for el in geodataframes])
+geodataframe = pd.concat(geodataframes)
 print(geodataframe.shape)
 
-
-################## Store Footprint Data ##################
-print("################## Convert to WKT Footprint Data ##################")
+################## Store  Data ##################
+print("################## Convert to WKT  Data ##################")
 geodataframe['geom'] = geodataframe['geometry'].apply(
     lambda x: WKTElement(x.wkt, srid=SRID))
 
@@ -47,7 +56,7 @@ geodataframe['geom'] = geodataframe['geometry'].apply(
 geodataframe.drop('geometry', 1, inplace=True)
 
 # For the geom column, we will use GeoAlchemy's type 'Geometry'
-print("################## Writing to SQL Footprint Data ##################")
+print("################## Writing to SQL  Data ##################")
 geodataframe.to_sql(name='power_grid',
                     con= engine,
                     if_exists='replace',
