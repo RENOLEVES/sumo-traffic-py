@@ -30,7 +30,7 @@ SRID = 4326
 ################## Parse Footprint Data ##################
 print("################## Parse Footprint Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
-fpath = "blobs/building_footprint_ms.geojson"
+fpath = "blobs/building_footprint_ms_stats.geojson"
 geodataframe = gpd.read_file(fpath, bbox=bbox_Montreal)
 print(geodataframe.head())
 print(geodataframe.size)
@@ -43,9 +43,21 @@ geodataframe['geom'] = geodataframe['geometry'].apply(
 # drop the geometry column as it is now duplicative
 geodataframe.drop('geometry', 1, inplace=True)
 
-print("################## Add Random Height Footprint Data ##################")
-# add random height column
-geodataframe['height'] = [3 + 10*random.gammavariate(3,1) for e in range(len(geodataframe))]
+# convert height info to integer for data size reduction
+geodataframe = geodataframe.fillna(0)
+geodataframe.height_mean = geodataframe.height_mean.astype(int)
+geodataframe.height_max = geodataframe.height_max.astype(int)
+geodataframe.height_stdev = geodataframe.height_stdev.astype(int)
+
+# remove other columns and keep only one
+geodataframe['height'] = geodataframe.height_max
+geodataframe.drop('height_mean', 1, inplace=True)
+geodataframe.drop('height_stdev', 1, inplace=True)
+geodataframe.drop('height_max', 1, inplace=True)
+
+# print("################## Add Random Height Footprint Data ##################")
+# # add random height column
+# geodataframe['height'] = [3 + 10*random.gammavariate(3,1) for e in range(len(geodataframe))]
 
 # For the geom column, we will use GeoAlchemy's type 'Geometry'
 print("################## Writing to SQL Footprint Data ##################")
@@ -53,8 +65,10 @@ geodataframe.to_sql(name='building_footprint_ms',
                     con= engine, 
                     if_exists='replace', 
                     index=True,
-                    chunksize=1000,
+                    chunksize=10000,
                     dtype={
-                        'height' : Float,
+                        'height_mean' : Integer,
+                        'height_stdev' : Integer,
+                        'height_max' : Integer,
                         'geom': Geometry('POLYGON', srid=SRID),
                         })
