@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 import os
 from sqlalchemy import create_engine, inspect
 import random
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point
 
 ################## DB ##################
 
@@ -33,8 +33,13 @@ SRID = 4326
 print("################## Parse Data ##################")
 bbox_Montreal = (-73.290386, 45.828865, -74.229416, 45.333622)
 xmax, ymax, xmin, ymin = bbox_Montreal
-fpath = "blobs/ev_stations.geojson"
-geodataframe = gpd.read_file(fpath)
+fpath = "blobs/ev_stations.json"
+df = pd.read_json(fpath)
+geodataframe = gpd.GeoDataFrame(df.drop(['Long', 'Lat'], axis=1),
+                                crs={'init': 'epsg:4326'},
+                                geometry=[Point(xy) for xy in zip(df.Long, df.Lat)])
+
+geodataframe['name'] = geodataframe['LocName']
 geodataframe = geodataframe[['name', 'geometry']]
 
 
@@ -49,10 +54,10 @@ geodataframe.drop('geometry', 1, inplace=True)
 # For the geom column, we will use GeoAlchemy's type 'Geometry'
 print("################## Writing to SQL Data ##################")
 geodataframe.to_sql(name='ev_stations',
-                    con= engine,
+                    con=engine,
                     if_exists='replace',
                     index=True,
                     chunksize=100,
                     dtype={
                         'geom': Geometry('POINT', srid=SRID),
-                        })
+                    })

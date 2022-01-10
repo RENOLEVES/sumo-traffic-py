@@ -1,0 +1,8 @@
+{
+	"sans": [
+		"www.serv1.miladag.com"
+	],
+	"issuer_data": {
+		"url": "https://acme-v02.api.letsencrypt.org/acme/cert/039b791cc85260e3693d5aebb7455b176944"
+	}
+}

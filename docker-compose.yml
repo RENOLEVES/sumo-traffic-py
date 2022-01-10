@@ -13,7 +13,7 @@ services:
       postgres:
         ipv4_address: 10.5.0.6
 
-  tileserver:
+  tile-server:
     container_name: tileserver_container
     image: urbica/martin
     restart: unless-stopped
@@ -36,19 +36,20 @@ services:
     restart: always
     env_file:
       - ".env"
-    networks:
-      - postgres
     environment:
       ## postgres database to store Hasura metadata
       HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/postgres
       ## this env var can be used to add the above postgres database to Hasura as a data source. this can be removed/updated based on your needs
       PG_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/postgres
+      HASURA_GRAPHQL_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/postgres
       ## enable the console served by server
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       ## enable debugging mode. It is recommended to disable this in production
       HASURA_GRAPHQL_DEV_MODE: "true"
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       # HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+    networks:
+      - postgres
 
   pgadmin:
     container_name: pgadmin_container
@@ -91,6 +92,52 @@ services:
     networks:
       - postgres
     restart: unless-stopped
+  
+  # nginx:
+  #   image: nginx:1.17.10
+  #   container_name: nginx_container
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./reverse-proxy/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./reverse-proxy/index.html:/usr/share/nginx/html/index.html
+  #     - ./reverse-proxy/certbot/conf:/etc/letsencrypt
+  #     - ./reverse-proxy/certbot/www:/var/www/certbot
+  #   depends_on:
+  #     - postgres
+  #     - backend
+  #     - pgadmin
+  #     - tile-server
+  #     - graphql-engine
+  #   command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  # certbot:
+  #   image: certbot/certbot
+  #   container_name: certbot_container
+  #   volumes:
+  #     - ./reverse-proxy/certbot/conf:/etc/letsencrypt
+  #     - ./reverse-proxy/certbot/www:/var/www/certbot
+  #   entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+
+
+  caddy:
+    container_name: caddy_container
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/static:/var/tmp
+      - ./caddy/data:/data
+      - ./caddy/config:/config
+    networks:
+      - postgres
+
+
 
 networks:
   postgres:

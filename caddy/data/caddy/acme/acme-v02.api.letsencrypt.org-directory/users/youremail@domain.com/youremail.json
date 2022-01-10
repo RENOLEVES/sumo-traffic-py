@@ -1,0 +1,9 @@
+{
+	"status": "valid",
+	"contact": [
+		"mailto:youremail@domain.com"
+	],
+	"termsOfServiceAgreed": true,
+	"orders": "",
+	"location": "https://acme-v02.api.letsencrypt.org/acme/acct/350972780"
+}

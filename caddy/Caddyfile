@@ -1,0 +1,21 @@
+serv1.miladag.com {
+    log
+    root * /var/tmp
+    file_server
+}
+
+gql.serv1.miladag.com {
+    reverse_proxy 10.5.0.1:8080
+}
+
+pg.serv1.miladag.com {
+    reverse_proxy 10.5.0.1:5050
+}
+
+tiles.serv1.miladag.com {
+    reverse_proxy 10.5.0.1:3005
+}
+
+stream.serv1.miladag.com {
+    reverse_proxy 10.5.0.1:8000
+}
