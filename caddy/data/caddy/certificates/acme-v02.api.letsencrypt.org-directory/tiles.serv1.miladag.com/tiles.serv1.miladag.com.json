@@ -1,8 +1,0 @@
-{
-	"sans": [
-		"tiles.serv1.miladag.com"
-	],
-	"issuer_data": {
-		"url": "https://acme-v02.api.letsencrypt.org/acme/cert/0497a6c5950351146dfa187e60cdc5e2f620"
-	}
-}
